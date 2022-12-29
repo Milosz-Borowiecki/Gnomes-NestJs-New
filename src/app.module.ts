@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
+import { GnomesModule } from './gnomes/gnomes.module';
 
 @Module({
-  imports: []
+  imports: [GnomesModule]
 })
 export class AppModule {}
