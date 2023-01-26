@@ -1,4 +1,8 @@
-import { Controller, Delete, Get, Patch, Post } from '@nestjs/common';
+import { Controller, Delete, Get, Patch, Post, ValidationPipe } from '@nestjs/common';
+import { Body } from '@nestjs/common/decorators';
+import { ApiConsumes } from '@nestjs/swagger';
+import { GnomeValidationPipe } from 'src/pipes/gnome.pipe';
+import { CreateGnomeDto } from './dtos/create-gnome.dto';
 import { GnomesService } from './gnomes.service';
 
 @Controller('gnomes')
@@ -18,7 +22,8 @@ export class GnomesController {
     }
 
     @Post()
-    create(){
+    @ApiConsumes('multipart/form-data')
+    create(@Body(new GnomeValidationPipe()) body: CreateGnomeDto){
         return this.gnomesService.create();
     }
 
