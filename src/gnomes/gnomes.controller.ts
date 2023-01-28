@@ -1,10 +1,14 @@
-import { Controller, Delete, Get, Patch, Post } from '@nestjs/common';
-import { Body } from '@nestjs/common/decorators';
-import { ApiBody } from '@nestjs/swagger';
+import { Controller, DefaultValuePipe, Delete, Get, ParseIntPipe, Patch, Post } from '@nestjs/common';
+import { Body, Query } from '@nestjs/common/decorators';
+import { ApiBody, ApiQuery } from '@nestjs/swagger';
 import { GnomeValidationPipe } from 'src/pipes/gnome.pipe';
+import { NumberValidationPipe } from 'src/pipes/number.pipe';
+import { TypeValidationPipe } from 'src/pipes/type.pipe';
 import { CreateGnomeDto } from './dtos/create-gnome.dto';
+import { Races } from './dtos/races';
 import { UpdateGnomeDto } from './dtos/update-gnome.dto';
 import { GnomesService } from './gnomes.service';
+
 
 @Controller('gnomes')
 export class GnomesController {
@@ -13,12 +17,21 @@ export class GnomesController {
 
     
     @Get()
-    findById(){
+    findById(
+        @Query('id', ParseIntPipe) id: number
+    ){
         return this.gnomesService.findById();
     }
 
+    @ApiQuery({name: "page",type: String,required:false})
+    @ApiQuery({name: "limit",type: String,required:false})
+    @ApiQuery({name: "type",type: String,required:false})
     @Get('/all')
-    findAll(){
+    findAll(
+        @Query('page', new DefaultValuePipe(1),NumberValidationPipe ,ParseIntPipe) page: number,
+        @Query('limit', new DefaultValuePipe(2),NumberValidationPipe ,ParseIntPipe) limit: number,
+        @Query('type', new TypeValidationPipe()) gnomeType? : Races
+    ){
         return this.gnomesService.findAll();
     }
 
