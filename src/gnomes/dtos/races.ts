@@ -1,7 +1,7 @@
 export enum Races {
-    Sky = 'sky',
-    Rock = 'rock',
-    River = 'river',
-    Fire = 'fire',
-    Forest = 'forest'
+    Sky = 'Sky',
+    Rock = 'Rock',
+    River = 'River',
+    Fire = 'Fire',
+    Forest = 'Forest'
 }

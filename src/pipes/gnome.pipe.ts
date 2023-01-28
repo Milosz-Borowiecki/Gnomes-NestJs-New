@@ -14,7 +14,7 @@ export class GnomeValidationPipe implements PipeTransform {
             throw new BadRequestException('Validation failed');
         }
 
-        if(value.strength > 100 && value.race !== "rock"){
+        if(value.strength > 100 && value.race !== "Rock"){
             throw new BadRequestException('Validation failed');
         }
 
