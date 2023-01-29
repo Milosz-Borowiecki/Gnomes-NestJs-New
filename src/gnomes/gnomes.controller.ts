@@ -17,6 +17,7 @@ export class GnomesController {
 
     
     @Get()
+    @ApiQuery({name: "id",type: Number,required:false})
     findById(
         @Query('id', ParseIntPipe) id: number
     ){
@@ -54,7 +55,10 @@ export class GnomesController {
     }
 
     @Delete()
-    delete(){
+    @ApiQuery({name: "id",type: Number,required:false})
+    delete(
+        @Query('id',NumberValidationPipe ,ParseIntPipe) id: number
+    ){
         return this.gnomesService.delete();
     }
 
