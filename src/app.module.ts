@@ -5,7 +5,6 @@ import { AuthController } from './auth/auth.controller';
 import { AuthModule } from './auth/auth.module';
 
 @Module({
-  imports: [GnomesModule, UserModule, AuthModule],
-  controllers: [AuthController]
+  imports: [GnomesModule, UserModule, AuthModule]
 })
 export class AppModule {}

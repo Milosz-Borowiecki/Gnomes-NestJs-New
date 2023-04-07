@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { UserRegistrationDto } from 'src/auth/dtos/user-registration.dto';
 
 export type User = {
     userId: number,
@@ -19,7 +20,13 @@ export class UserService {
         return this.users.find(user => user.username === username);
     }
 
-    async create(userData) : Promise<any>{
+    async create(userData: UserRegistrationDto) : Promise<any>{
+
+        if(this.users.find(user => user.username === userData.username) !== undefined){
+            return {
+                message: "This nick is already taken"
+            }
+        }
 
         var id: number = this.users.length;
 
@@ -29,7 +36,9 @@ export class UserService {
             password: userData.password
         });
 
-        return true;
+        return {
+            message: "Account created successfully"
+        }
 
     }
 
