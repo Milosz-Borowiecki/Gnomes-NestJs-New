@@ -13,8 +13,8 @@ export class UserService {
         this.users = [];
     }
 
-    async findOne(loginData: UserLoggingDto) : Promise<User | undefined>{
-        return this.users.find(user => user.username === loginData.username);
+    async findOne(username: string) : Promise<User | undefined>{
+        return this.users.find(user => user.username === username);
     }
 
     async create(userData: UserRegistrationDto) : Promise<any>{
