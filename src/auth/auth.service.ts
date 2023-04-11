@@ -13,15 +13,17 @@ export class AuthService {
     async validateUser(loginData : UserLoggingDto) : Promise<any>{
         const user = await this.userService.findOne(loginData.username);
 
-        const [salt, key] = user.password.split(':');
-        const hashedBuffer = scryptSync(loginData.password,salt,64);
+        if(user !== undefined){
+            const [salt, key] = user.password.split(':');
+            const hashedBuffer = scryptSync(loginData.password,salt,64);
 
-        const keyBuffer = Buffer.from(key,'hex');
-        const match = timingSafeEqual(hashedBuffer,keyBuffer);
+            const keyBuffer = Buffer.from(key,'hex');
+            const match = timingSafeEqual(hashedBuffer,keyBuffer);
 
-        if (user && match) {
-            const { password, ...result } = user;
-            return result;
+            if (user && match) {
+                const { password, ...result } = user;
+                return result;
+            }
         }
         return null;
     }

@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { UserLoggingDto } from 'src/auth/dtos/user-login.dto';
 import { randomBytes, scryptSync } from 'crypto';
 import { UserRegistrationDto } from 'src/auth/dtos/user-registration.dto';
 import { User } from './user.interface';
@@ -33,6 +32,7 @@ export class UserService {
             username: userData.username,
             password: hashedPassword
         });
+
 
         return {
             message: "Account created successfully."
