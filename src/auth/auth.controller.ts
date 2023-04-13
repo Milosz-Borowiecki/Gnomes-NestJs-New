@@ -1,4 +1,4 @@
-import { Body, Controller, Post, ValidationPipe, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post, ValidationPipe, UseGuards, Request } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiBody } from '@nestjs/swagger';
 import { UserRegistrationDto } from './dtos/user-registration.dto';
@@ -13,11 +13,12 @@ export class AuthController {
     @UseGuards(LocalAuthGuard)
     @Post('login')
     @ApiBody({
-        description: 'Registers the user',
+        description: 'Login the user',
         type: UserLoggingDto,
       })
-    async login(@Body(new ValidationPipe()) body: UserLoggingDto){
-        return this.authService.login(body);
+    async login(@Body(new ValidationPipe()) body: UserLoggingDto,
+                @Request() req){
+        return this.authService.login(req.user);
     }
 
     @Post('register')
@@ -28,5 +29,4 @@ export class AuthController {
     async register(@Body(new ValidationPipe()) body: UserRegistrationDto){
         return this.authService.register(body);
     }
-
 }
