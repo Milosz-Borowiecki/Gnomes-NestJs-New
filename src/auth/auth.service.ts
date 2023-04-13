@@ -3,11 +3,13 @@ import { UserService } from 'src/user/user.service';
 import { UserRegistrationDto } from './dtos/user-registration.dto';
 import { UserLoggingDto } from './dtos/user-login.dto';
 import { scryptSync, timingSafeEqual } from 'crypto';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
     constructor(
-        private userService: UserService
+        private userService: UserService,
+        private jwtService: JwtService
     ){}
 
     async validateUser(loginData : UserLoggingDto) : Promise<any>{
@@ -35,16 +37,11 @@ export class AuthService {
         return message;
     }
 
-    async login(loginData: UserLoggingDto) : Promise<any>{
+    async login(loginData: Record<number,string>) : Promise<any>{
+        const payload = { userId: loginData[0] , username: loginData[1]};
 
-        let user = await this.userService.findOne(loginData.username);
-
-        if(user === undefined){
-            return {
-                message: "We can't find this user. Please try again."
-            }
+        return {
+            access_token : this.jwtService.sign(payload)
         }
-
-        return user;
     }
 }
