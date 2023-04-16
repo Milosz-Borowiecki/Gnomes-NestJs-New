@@ -1,9 +1,10 @@
-import { Body, Controller, Post, ValidationPipe, UseGuards, Request } from '@nestjs/common';
+import { Body, Controller, Post, ValidationPipe, UseGuards, Res, Req } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiBody } from '@nestjs/swagger';
 import { UserRegistrationDto } from './dtos/user-registration.dto';
 import { UserLoggingDto } from './dtos/user-login.dto';
 import { LocalAuthGuard } from './local-auth.guard';
+import { Response } from 'express';
 
 @Controller('auth')
 export class AuthController {
@@ -17,8 +18,10 @@ export class AuthController {
         type: UserLoggingDto,
       })
     async login(@Body(new ValidationPipe()) body: UserLoggingDto,
-                @Request() req){
-        return this.authService.login(req.user);
+                @Req() req,
+                @Res({ passthrough: true }) res: Response){
+        const token = await this.authService.login(req.user);
+        res.cookie('cookie-token',token,{ httpOnly: true });
     }
 
     @Post('register')
