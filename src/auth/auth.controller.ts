@@ -1,10 +1,11 @@
-import { Body, Controller, Post, ValidationPipe, UseGuards, Res, Req } from '@nestjs/common';
+import { Body, Controller, Post, ValidationPipe, UseGuards, Res, Req, Get } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { ApiBody } from '@nestjs/swagger';
+import { ApiBody, ApiCookieAuth } from '@nestjs/swagger';
 import { UserRegistrationDto } from './dtos/user-registration.dto';
 import { UserLoggingDto } from './dtos/user-login.dto';
 import { LocalAuthGuard } from './local-auth.guard';
-import { Response } from 'express';
+import { Response, Request } from 'express';
+import { JwtAuthGuard } from './jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -31,5 +32,20 @@ export class AuthController {
       })
     async register(@Body(new ValidationPipe()) body: UserRegistrationDto){
         return this.authService.register(body);
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Get('logout')
+    @ApiBody({
+      description: 'Logout the user'
+    })
+    @ApiCookieAuth('cookie-token')
+    async logout(
+      @Req() req: Request,
+      @Res({ passthrough: true })res: Response){
+      res.cookie('cookie-token', '', { expires: new Date(), httpOnly: true });
+      return {
+        message: "You have been logged out."
+      }
     }
 }

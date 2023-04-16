@@ -40,8 +40,6 @@ export class AuthService {
     async login(loginData: Record<number,string>) : Promise<any>{
         const payload = { userId: loginData[0] , username: loginData[1]};
 
-        return {
-            access_token : this.jwtService.sign(payload)
-        }
+        return this.jwtService.sign(payload);
     }
 }
