@@ -1,5 +1,5 @@
 import { Controller, DefaultValuePipe, Delete, Get, ParseIntPipe, Patch, Post } from '@nestjs/common';
-import { Body, Query } from '@nestjs/common/decorators';
+import { Body, Query, UseGuards } from '@nestjs/common/decorators';
 import { ApiBody, ApiQuery } from '@nestjs/swagger';
 import { GnomeValidationPipe } from 'src/pipes/gnome.pipe';
 import { NumberValidationPipe } from 'src/pipes/number.pipe';
@@ -8,6 +8,7 @@ import { CreateGnomeDto } from './dtos/create-gnome.dto';
 import { Races } from './dtos/races';
 import { UpdateGnomeDto } from './dtos/update-gnome.dto';
 import { GnomesService } from './gnomes.service';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
 
 @Controller('gnomes')
@@ -36,6 +37,7 @@ export class GnomesController {
         return this.gnomesService.findAll();
     }
 
+    @UseGuards(JwtAuthGuard)
     @Post()
     @ApiBody({
         description: 'Create gnome',
@@ -45,6 +47,7 @@ export class GnomesController {
         return this.gnomesService.create();
     }
 
+    @UseGuards(JwtAuthGuard)
     @Patch()
     @ApiBody({
         description: 'Update gnome',
@@ -54,6 +57,7 @@ export class GnomesController {
         return this.gnomesService.modify();
     }
 
+    @UseGuards(JwtAuthGuard)
     @Delete()
     @ApiQuery({name: "id",type: Number,required:false})
     delete(
