@@ -1,5 +1,5 @@
 import { Controller, DefaultValuePipe, Delete, Get, ParseIntPipe, Patch, Post } from '@nestjs/common';
-import { Body, Query, UseGuards } from '@nestjs/common/decorators';
+import { Body, Query, Request, UseGuards } from '@nestjs/common/decorators';
 import { ApiBody, ApiQuery } from '@nestjs/swagger';
 import { GnomeValidationPipe } from 'src/pipes/gnome.pipe';
 import { NumberValidationPipe } from 'src/pipes/number.pipe';
@@ -22,7 +22,7 @@ export class GnomesController {
     findById(
         @Query('id', ParseIntPipe) id: number
     ){
-        return this.gnomesService.findById();
+        return this.gnomesService.findById(id);
     }
 
     @ApiQuery({name: "page",type: String,required:false})

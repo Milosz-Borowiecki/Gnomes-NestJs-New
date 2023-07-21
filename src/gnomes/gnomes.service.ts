@@ -10,12 +10,12 @@ export class GnomesService {
         this.gnomes = [];
     }
 
-    findById(){
-        return { message: "Get gnome" };
+    findById(gnomeId: number){
+        return this.gnomes.find(gnome => gnome.gnomeId === gnomeId);
     }
 
     findAll(){
-        return { message: "All gnomes" };
+        return this.gnomes;
     }
 
     create(){
