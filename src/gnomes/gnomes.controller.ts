@@ -63,7 +63,7 @@ export class GnomesController {
     delete(
         @Query('id',NumberValidationPipe ,ParseIntPipe) id: number
     ){
-        return this.gnomesService.delete();
+        return this.gnomesService.delete(id);
     }
 
 }

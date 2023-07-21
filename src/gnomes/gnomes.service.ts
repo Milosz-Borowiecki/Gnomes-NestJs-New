@@ -26,8 +26,24 @@ export class GnomesService {
         return { message: "Gnome edited" };
     }
 
-    delete(){
-        return { message: "Gnome deleted" };
+    delete(gnomeId:number){
+        const gnomeIndex = this.gnomes.findIndex(gnome => gnome.gnomeId === gnomeId);
+        const length = this.length();
+
+        if(length > 1){
+            this.gnomes[gnomeIndex] = this.gnomes[length-1];
+            this.gnomes.pop();
+            return { message: "Gnome deleted" }
+        }
+
+        if(length === 1){
+            this.gnomes.pop();
+            return { message: "Gnome deleted" }
+        }
+    }
+
+    length(){
+        return this.gnomes.length;
     }
 
 }
