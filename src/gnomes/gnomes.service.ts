@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Gnome } from './gnome.interface';
+import { CreateGnome, Gnome } from './gnome.interface';
 
 @Injectable()
 export class GnomesService {
@@ -18,7 +18,12 @@ export class GnomesService {
         return this.gnomes;
     }
 
-    create(){
+    create(body: CreateGnome,userId: number){
+
+        let gnome: Gnome = { gnomeId: this.length() + 1, authorId: userId ,...body};
+
+        this.gnomes.push(gnome);
+
         return { message: "Create gnome" };
     }
 

@@ -43,8 +43,12 @@ export class GnomesController {
         description: 'Create gnome',
         type: CreateGnomeDto,
       })
-    create(@Body(new GnomeValidationPipe()) body: CreateGnomeDto){
-        return this.gnomesService.create();
+      create(
+        @Body(new GnomeValidationPipe()) body: CreateGnomeDto,
+        @Request() req
+    ){
+        let userId = req.user["sub"];
+        return this.gnomesService.create(body,userId);
     }
 
     @UseGuards(JwtAuthGuard)
