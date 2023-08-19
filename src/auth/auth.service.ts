@@ -4,6 +4,7 @@ import { UserRegistrationDto } from './dtos/user-registration.dto';
 import { UserLoggingDto } from './dtos/user-login.dto';
 import { scryptSync, timingSafeEqual } from 'crypto';
 import { JwtService } from '@nestjs/jwt';
+import { PayloadData } from './auth.interface';
 
 @Injectable()
 export class AuthService {
@@ -37,8 +38,9 @@ export class AuthService {
         return message;
     }
 
-    async login(loginData: Record<number,string>) : Promise<any>{
-        const payload = { userId: loginData[0] , username: loginData[1]};
+    async login(loginData: PayloadData) : Promise<any>{
+
+        const payload = { sub: loginData.userId , username: loginData.username };
 
         return this.jwtService.sign(payload);
     }
