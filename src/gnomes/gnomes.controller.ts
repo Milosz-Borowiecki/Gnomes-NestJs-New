@@ -1,6 +1,6 @@
 import { Controller, DefaultValuePipe, Delete, Get, ParseIntPipe, Patch, Post } from '@nestjs/common';
-import { Body, Query, UseGuards } from '@nestjs/common/decorators';
-import { ApiBody, ApiQuery } from '@nestjs/swagger';
+import { Body, Param, Query, Request, UseGuards } from '@nestjs/common/decorators';
+import { ApiBody, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { GnomeValidationPipe } from 'src/pipes/gnome.pipe';
 import { NumberValidationPipe } from 'src/pipes/number.pipe';
 import { TypeValidationPipe } from 'src/pipes/type.pipe';
@@ -22,7 +22,7 @@ export class GnomesController {
     findById(
         @Query('id', ParseIntPipe) id: number
     ){
-        return this.gnomesService.findById();
+        return this.gnomesService.findById(id);
     }
 
     @ApiQuery({name: "page",type: String,required:false})
@@ -43,18 +43,23 @@ export class GnomesController {
         description: 'Create gnome',
         type: CreateGnomeDto,
       })
-    create(@Body(new GnomeValidationPipe()) body: CreateGnomeDto){
-        return this.gnomesService.create();
+      create(
+        @Body(new GnomeValidationPipe()) body: CreateGnomeDto,
+        @Request() req
+    ){
+        let userId = req.user["sub"];
+        return this.gnomesService.create(body,userId);
     }
 
     @UseGuards(JwtAuthGuard)
-    @Patch()
+    @Patch('/:id')
     @ApiBody({
         description: 'Update gnome',
         type: UpdateGnomeDto,
       })
-    modify(@Body(new GnomeValidationPipe()) body: UpdateGnomeDto){
-        return this.gnomesService.modify();
+    @ApiParam({name: "id",type: Number,required:true})
+    modify(@Param('id',new NumberValidationPipe,ParseIntPipe) id: number,@Body(new GnomeValidationPipe()) body: UpdateGnomeDto){
+        return this.gnomesService.modify(id,body);
     }
 
     @UseGuards(JwtAuthGuard)
@@ -63,7 +68,7 @@ export class GnomesController {
     delete(
         @Query('id',NumberValidationPipe ,ParseIntPipe) id: number
     ){
-        return this.gnomesService.delete();
+        return this.gnomesService.delete(id);
     }
 
 }

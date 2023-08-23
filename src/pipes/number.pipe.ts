@@ -9,7 +9,7 @@ export class NumberValidationPipe implements PipeTransform {
             throw new BadRequestException('Validation failed: value must not be equal 0');
         }
 
-        if(value >= 0){
+        if(value < 0){
             value = (-1) * value;
         }
         
