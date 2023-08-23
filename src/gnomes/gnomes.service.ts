@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { CreateGnome, Gnome } from './gnome.interface';
+import { UpdateGnomeDto } from './dtos/update-gnome.dto';
+import { Races } from './dtos/races';
 
 @Injectable()
 export class GnomesService {
@@ -7,7 +9,16 @@ export class GnomesService {
     private gnomes: Gnome[];
 
     constructor(){
-        this.gnomes = [];
+        this.gnomes = [
+            {
+                gnomeId: 1,
+                authorId: 0,
+                name: "string",
+                age: 10,
+                strength: 30,
+                race: Races.Sky
+            }
+        ];
     }
 
     findById(gnomeId: number){
@@ -27,12 +38,19 @@ export class GnomesService {
         return { message: "Create gnome" };
     }
 
-    modify(){
-        return { message: "Gnome edited" };
+    modify(gnomeId: number,body: UpdateGnomeDto){
+
+        const gnomeIndex = this.gnomes.findIndex(gnome => gnome.gnomeId === gnomeId);
+
+        this.gnomes[gnomeIndex] = Object.assign(this.gnomes[gnomeIndex],body);
+
+        return { message: "Gnome edited" , gnome: JSON.stringify(this.gnomes[gnomeIndex])};
     }
 
     delete(gnomeId:number){
+
         const gnomeIndex = this.gnomes.findIndex(gnome => gnome.gnomeId === gnomeId);
+
         const length = this.length();
 
         if(length > 1){

@@ -1,6 +1,6 @@
 import { Controller, DefaultValuePipe, Delete, Get, ParseIntPipe, Patch, Post } from '@nestjs/common';
-import { Body, Query, Request, UseGuards } from '@nestjs/common/decorators';
-import { ApiBody, ApiQuery } from '@nestjs/swagger';
+import { Body, Param, Query, Request, UseGuards } from '@nestjs/common/decorators';
+import { ApiBody, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { GnomeValidationPipe } from 'src/pipes/gnome.pipe';
 import { NumberValidationPipe } from 'src/pipes/number.pipe';
 import { TypeValidationPipe } from 'src/pipes/type.pipe';
@@ -52,13 +52,14 @@ export class GnomesController {
     }
 
     @UseGuards(JwtAuthGuard)
-    @Patch()
+    @Patch('/:id')
     @ApiBody({
         description: 'Update gnome',
         type: UpdateGnomeDto,
       })
-    modify(@Body(new GnomeValidationPipe()) body: UpdateGnomeDto){
-        return this.gnomesService.modify();
+    @ApiParam({name: "id",type: Number,required:true})
+    modify(@Param('id',new NumberValidationPipe,ParseIntPipe) id: number,@Body(new GnomeValidationPipe()) body: UpdateGnomeDto){
+        return this.gnomesService.modify(id,body);
     }
 
     @UseGuards(JwtAuthGuard)
