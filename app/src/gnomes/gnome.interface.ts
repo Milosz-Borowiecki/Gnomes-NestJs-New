@@ -1,13 +1,13 @@
 import { Races } from "./dtos/races";
 
-export interface CreateGnome {
+export interface CreateGnomeInterface {
     name: string;
     age: number;
     strength: number;
     race: Races;
 }
 
-export interface Gnome extends CreateGnome{
+export interface GnomeInterface extends CreateGnomeInterface{
     gnomeId: number;
     authorId: number;
 }
