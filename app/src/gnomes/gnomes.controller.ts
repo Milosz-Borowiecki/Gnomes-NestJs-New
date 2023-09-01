@@ -22,7 +22,16 @@ export class GnomesController {
     findById(
         @Query('id', ParseIntPipe) id: number
     ){
-        return this.gnomesService.findById(id);
+
+        const gnome = this.findGnome(id);
+
+        if(!gnome){
+            return {
+                message: "We couldn't find this gnome"
+            }
+        }
+
+        return gnome;
     }
 
     @ApiQuery({name: "page",type: String,required:false})
@@ -47,8 +56,7 @@ export class GnomesController {
         @Body(new GnomeValidationPipe()) body: CreateGnomeDto,
         @Request() req
     ){
-        let userId = req.user["sub"];
-        return this.gnomesService.create(body,userId);
+        return this.gnomesService.create(body,this.userFromRequest(req));
     }
 
     @UseGuards(JwtAuthGuard)
@@ -58,17 +66,60 @@ export class GnomesController {
         type: UpdateGnomeDto,
       })
     @ApiParam({name: "id",type: Number,required:true})
-    modify(@Param('id',new NumberValidationPipe,ParseIntPipe) id: number,@Body(new GnomeValidationPipe()) body: UpdateGnomeDto){
+    modify(
+        @Param('id',new NumberValidationPipe,ParseIntPipe) id: number,
+        @Body(new GnomeValidationPipe()) body: UpdateGnomeDto,
+        @Request() req
+
+    ){
+        const gnome = this.findGnome(id);
+
+        if(!gnome){
+            return {
+                message: "We couldn't find this gnome"
+            }
+        }
+
+        if(gnome.authorId != this.userFromRequest(req)){
+            return {
+                message: "You are not the owner of this gnome"
+            }
+        }
+
         return this.gnomesService.modify(id,body);
     }
 
     @UseGuards(JwtAuthGuard)
     @Delete()
-    @ApiQuery({name: "id",type: Number,required:false})
+    @ApiParam({name: "id",type: Number,required:true})
     delete(
-        @Query('id',NumberValidationPipe ,ParseIntPipe) id: number
+        @Param('id',NumberValidationPipe ,ParseIntPipe) id: number,
+        @Request() req
     ){
+
+        const gnome = this.findGnome(id);
+
+        if(!gnome){
+            return {
+                message: "We couldn't find this gnome"
+            }
+        }
+
+        if(gnome.authorId != this.userFromRequest(req)){
+            return {
+                message: "You are not the owner of this gnome"
+            }
+        }
+
         return this.gnomesService.delete(id);
+    }
+
+    userFromRequest(req:any){
+        return req.user["sub"];
+    }
+
+    findGnome(id:number){
+        return this.gnomesService.findById(+id);
     }
 
 }
