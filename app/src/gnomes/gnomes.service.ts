@@ -13,18 +13,25 @@ export class GnomesService {
         private gnomesRepository: Repository<Gnome>
     ){}
 
-    findById(gnomeId: number) : Promise<Gnome | null>{
-        return this.gnomesRepository.findOneBy({id:gnomeId});
+    async findById(gnomeId: number) : Promise<Gnome | null>{
+        return this.gnomesRepository.findOne({
+            select: { user: { username: true }}, 
+            where: { id: gnomeId }, 
+            relations: ['user']
+        });
     }
 
-    findAll() : Promise<Gnome[]>{
-        return this.gnomesRepository.find();
+    async findAll() : Promise<Gnome[]>{
+        return this.gnomesRepository.find({ 
+            select: { user: { username: true }},
+            relations: ['user']
+        });
     }
 
     create(body: CreateGnomeInterface,userId: number) : Promise<Gnome>{
-    
+
         const gnome = Object.assign(new Gnome(),body);
-    
+
         gnome.author_id = userId;
 
         return this.gnomesRepository.save(gnome);
@@ -33,7 +40,7 @@ export class GnomesService {
     modify(gnomeId: number,body: UpdateGnomeDto) : Promise<Gnome>{
 
         const gnome = Object.assign(new Gnome(),body);
-    
+
         gnome.id = gnomeId;
 
         return this.gnomesRepository.save(gnome);
