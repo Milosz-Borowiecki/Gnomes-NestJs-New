@@ -1,72 +1,72 @@
 import { Injectable } from '@nestjs/common';
-import { CreateGnome, Gnome } from './gnome.interface';
+import { CreateGnomeInterface } from './gnome.interface';
 import { UpdateGnomeDto } from './dtos/update-gnome.dto';
-import { Races } from './dtos/races';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Gnome } from './entities/gnome.entity';
+import { Repository } from 'typeorm';
+import { User } from 'src/user/entities/user.entity';
 
 @Injectable()
 export class GnomesService {
 
-    private gnomes: Gnome[];
+    constructor(
+        @InjectRepository(Gnome)
+        private gnomesRepository: Repository<Gnome>,
+        @InjectRepository(User)
+        private readonly usersRepository: Repository<User>
+    ){}
 
-    constructor(){
-        this.gnomes = [
-            {
-                gnomeId: 1,
-                authorId: 0,
-                name: "string",
-                age: 10,
-                strength: 30,
-                race: Races.Sky
-            }
-        ];
+    async findById(gnomeId: number) : Promise<Gnome | null>{
+        return this.gnomesRepository.findOne({
+            select: { user: { username: true }}, 
+            where: { id: gnomeId }, 
+            relations: ['user']
+        });
     }
 
-    findById(gnomeId: number){
-        return this.gnomes.find(gnome => gnome.gnomeId === gnomeId);
+    async findAll() : Promise<Gnome[]>{
+        return this.gnomesRepository.find({ 
+            select: { user: { username: true }},
+            relations: ['user']
+        });
     }
 
-    findAll(){
-        return this.gnomes;
+    async create(body: CreateGnomeInterface,userId: number) : Promise<Gnome>{
+
+        const gnome = Object.assign(new Gnome(),body);
+
+        const user = await this.usersRepository.findOne({ 
+            where: { id: userId }, 
+            relations: ['gnomes']
+        });
+    
+        const newGnome = await this.gnomesRepository.save(gnome)
+
+        user.gnomes.push(gnome)
+
+        await this.usersRepository.save(user);
+
+        return newGnome;
     }
 
-    create(body: CreateGnome,userId: number){
+    async modify(gnomeId: number,body: UpdateGnomeDto) : Promise<Gnome>{
 
-        let gnome: Gnome = { gnomeId: this.length() + 1, authorId: userId ,...body};
+        const gnome = Object.assign(new Gnome(),body);
 
-        this.gnomes.push(gnome);
+        const isExist = await this.gnomesRepository.exist({ 
+            where: { id: gnomeId } 
+        });
 
-        return { message: "Create gnome" };
-    }
-
-    modify(gnomeId: number,body: UpdateGnomeDto){
-
-        const gnomeIndex = this.gnomes.findIndex(gnome => gnome.gnomeId === gnomeId);
-
-        this.gnomes[gnomeIndex] = Object.assign(this.gnomes[gnomeIndex],body);
-
-        return { message: "Gnome edited" , gnome: JSON.stringify(this.gnomes[gnomeIndex])};
-    }
-
-    delete(gnomeId:number){
-
-        const gnomeIndex = this.gnomes.findIndex(gnome => gnome.gnomeId === gnomeId);
-
-        const length = this.length();
-
-        if(length > 1){
-            this.gnomes[gnomeIndex] = this.gnomes[length-1];
-            this.gnomes.pop();
-            return { message: "Gnome deleted" }
+        if(!isExist){
+            return;
         }
+    
+        gnome.id = gnomeId;
 
-        if(length === 1){
-            this.gnomes.pop();
-            return { message: "Gnome deleted" }
-        }
+        return this.gnomesRepository.save(gnome);
     }
 
-    length(){
-        return this.gnomes.length;
+    async delete(gnomeId:number) : Promise<void>{
+        await this.gnomesRepository.delete(gnomeId);
     }
-
 }

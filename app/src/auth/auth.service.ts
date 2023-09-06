@@ -33,6 +33,14 @@ export class AuthService {
 
     async register(dataUser: UserRegistrationDto) : Promise<any>{
 
+        const user = await this.userService.findOne(dataUser.username);
+
+        if(user){
+            return {
+                message: "This nick is already taken."
+            }
+        }
+
         let message = await this.userService.create(dataUser);
 
         return message;
