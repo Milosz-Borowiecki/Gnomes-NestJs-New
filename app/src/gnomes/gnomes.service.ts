@@ -18,7 +18,7 @@ export class GnomesService {
 
     async findById(gnomeId: number) : Promise<Gnome | null>{
         return this.gnomesRepository.findOne({
-            select: { user: { username: true }}, 
+            select: { user: { id: true, username: true }}, 
             where: { id: gnomeId }, 
             relations: ['user']
         });
@@ -26,7 +26,7 @@ export class GnomesService {
 
     async findAll() : Promise<Gnome[]>{
         return this.gnomesRepository.find({ 
-            select: { user: { username: true }},
+            select: { user: { id: true, username: true }},
             relations: ['user']
         });
     }

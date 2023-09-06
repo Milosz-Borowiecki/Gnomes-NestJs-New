@@ -9,6 +9,7 @@ import { Races } from './dtos/races';
 import { UpdateGnomeDto } from './dtos/update-gnome.dto';
 import { GnomesService } from './gnomes.service';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { Gnome } from './entities/gnome.entity';
 
 
 @Controller('gnomes')
@@ -52,11 +53,11 @@ export class GnomesController {
         description: 'Create gnome',
         type: CreateGnomeDto,
       })
-      create(
+    async create(
         @Body(new GnomeValidationPipe()) body: CreateGnomeDto,
         @Request() req
     ){
-        return this.gnomesService.create(body,this.userFromRequest(req));
+        return this.gnomesService.create(body,await this.userFromRequest(req));
     }
 
     @UseGuards(JwtAuthGuard)
@@ -66,12 +67,12 @@ export class GnomesController {
         type: UpdateGnomeDto,
       })
     @ApiParam({name: "id",type: Number,required:true})
-    modify(
+    async modify(
         @Param('id',new NumberValidationPipe,ParseIntPipe) id: number,
         @Body(new GnomeValidationPipe()) body: UpdateGnomeDto,
         @Request() req
     ){
-        const gnome = this.findGnome(id);
+        const gnome = await this.findGnome(id);
 
         if(!gnome){
             return {
@@ -79,7 +80,7 @@ export class GnomesController {
             }
         }
 
-        if(gnome.authorId != this.userFromRequest(req)){
+        if(gnome.user.id != this.userFromRequest(req)){
             return {
                 message: "You are not the owner of this gnome"
             }
@@ -89,14 +90,13 @@ export class GnomesController {
     }
 
     @UseGuards(JwtAuthGuard)
-    @Delete()
+    @Delete('/:id')
     @ApiParam({name: "id",type: Number,required:true})
-    delete(
+    async delete(
         @Param('id',NumberValidationPipe ,ParseIntPipe) id: number,
         @Request() req
     ){
-
-        const gnome = this.findGnome(id);
+        const gnome = await this.findGnome(id);
 
         if(!gnome){
             return {
@@ -104,7 +104,7 @@ export class GnomesController {
             }
         }
 
-        if(gnome.authorId != this.userFromRequest(req)){
+        if(gnome.user.id != this.userFromRequest(req)){
             return {
                 message: "You are not the owner of this gnome"
             }
@@ -117,8 +117,8 @@ export class GnomesController {
         return req.user["sub"];
     }
 
-    findGnome(id:number){
-        return this.gnomesService.findById(+id);
+    async findGnome(id:number){
+        return await this.gnomesService.findById(+id);
     }
 
 }

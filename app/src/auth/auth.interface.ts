@@ -1,4 +1,4 @@
 export interface PayloadData {
-    userId: string;
+    id: string;
     username: string;
 }
