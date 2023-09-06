@@ -70,7 +70,6 @@ export class GnomesController {
         @Param('id',new NumberValidationPipe,ParseIntPipe) id: number,
         @Body(new GnomeValidationPipe()) body: UpdateGnomeDto,
         @Request() req
-
     ){
         const gnome = this.findGnome(id);
 
