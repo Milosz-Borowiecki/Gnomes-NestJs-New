@@ -1,4 +1,4 @@
-import { PipeTransform, Injectable, BadRequestException } from '@nestjs/common';
+import { PipeTransform, Injectable } from '@nestjs/common';
 import { Races } from 'src/gnomes/dtos/races';
 
 @Injectable()
@@ -14,6 +14,6 @@ export class TypeValidationPipe implements PipeTransform {
             return value;
         }
 
-        throw new BadRequestException('Validation failed');
+        return undefined;
     }
 }
