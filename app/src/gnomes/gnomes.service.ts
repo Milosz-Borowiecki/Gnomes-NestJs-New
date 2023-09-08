@@ -84,7 +84,14 @@ export class GnomesService {
         await this.gnomesRepository.delete(gnomeId);
     }
 
-    async countGnomes(){
-        return await this.gnomesRepository.count();
+    async countGnomes(gnomeType: Races){
+
+        if(!gnomeType){
+            return await this.gnomesRepository.count();
+        }
+
+        return await this.gnomesRepository.count({
+            where: { race: gnomeType }
+        });
     }
 }

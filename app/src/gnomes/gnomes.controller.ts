@@ -44,7 +44,7 @@ export class GnomesController {
         @Query('limit', new DefaultValuePipe(10),NumberValidationPipe ,ParseIntPipe) limit: number,
         @Query('type', new TypeValidationPipe) gnomeType? : Races
     ){
-        const dataCount = await this.gnomesService.countGnomes();
+        const dataCount = await this.gnomesService.countGnomes(gnomeType);
 
         const data = await this.gnomesService.findAll((page - 1) * limit,limit,gnomeType);
 
