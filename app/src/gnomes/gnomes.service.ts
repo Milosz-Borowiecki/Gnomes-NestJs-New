@@ -83,4 +83,8 @@ export class GnomesService {
     async delete(gnomeId:number) : Promise<void>{
         await this.gnomesRepository.delete(gnomeId);
     }
+
+    async countGnomes(){
+        return await this.gnomesRepository.count();
+    }
 }
