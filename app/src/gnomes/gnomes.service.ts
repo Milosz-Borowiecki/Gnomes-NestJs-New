@@ -5,6 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Gnome } from './entities/gnome.entity';
 import { Repository } from 'typeorm';
 import { User } from 'src/user/entities/user.entity';
+import { Races } from './dtos/races';
 
 @Injectable()
 export class GnomesService {
@@ -24,10 +25,23 @@ export class GnomesService {
         });
     }
 
-    async findAll() : Promise<Gnome[]>{
+    async findAll(index: number,limit: number,gnomeType: Races) : Promise<Gnome[]>{
+
+        if(!gnomeType){
+            return this.gnomesRepository.find({ 
+                select: { user: { id: true, username: true }},
+                relations: ['user'],
+                take: limit,
+                skip: index
+            });
+        }
+
         return this.gnomesRepository.find({ 
             select: { user: { id: true, username: true }},
-            relations: ['user']
+            relations: ['user'],
+            where: { race: gnomeType },
+            take: limit,
+            skip: index
         });
     }
 

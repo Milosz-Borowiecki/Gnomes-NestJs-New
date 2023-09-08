@@ -44,7 +44,7 @@ export class GnomesController {
         @Query('limit', new DefaultValuePipe(2),NumberValidationPipe ,ParseIntPipe) limit: number,
         @Query('type', new TypeValidationPipe()) gnomeType? : Races
     ){
-        return this.gnomesService.findAll();
+        return this.gnomesService.findAll((page - 1) * limit,limit,gnomeType);
     }
 
     @UseGuards(JwtAuthGuard)
