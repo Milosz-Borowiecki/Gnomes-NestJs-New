@@ -10,6 +10,7 @@ import { UpdateGnomeDto } from './dtos/update-gnome.dto';
 import { GnomesService } from './gnomes.service';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { GnomePageDto, GnomePageMetaDto } from './dtos/gnome-page.dto';
+import { GnomeResponse } from './dtos/gnome-response.dto';
 
 
 @Controller('gnomes')
@@ -19,12 +20,12 @@ export class GnomesController {
 
     
     @Get()
-    @ApiQuery({name: "id",type: Number,required:false})
-    findById(
+    @ApiQuery({name: "id",type: Number,required:true})
+    async findById(
         @Query('id', ParseIntPipe) id: number
     ){
 
-        const gnome = this.findGnome(id);
+        const gnome = await this.findGnome(id);
 
         if(!gnome){
             return {
@@ -32,7 +33,13 @@ export class GnomesController {
             }
         }
 
-        return gnome;
+        const imageUrl = await this.gnomesService.getGnomeImage(gnome.id,gnome.user.id);
+
+        if(imageUrl){
+            return new GnomeResponse(gnome,imageUrl);
+        }
+
+        return new GnomeResponse(gnome,null);
     }
 
     @ApiQuery({name: "page",type: String,required:false})
@@ -48,9 +55,21 @@ export class GnomesController {
 
         const data = await this.gnomesService.findAll((page - 1) * limit,limit,gnomeType);
 
+        const gnomes: GnomeResponse[] = [];
+
+        for(const gnome of data){
+            const imageUrl = await this.gnomesService.getGnomeImage(gnome.id,gnome.user.id);
+
+            if(imageUrl){
+                gnomes.push(new GnomeResponse(gnome,imageUrl));
+            }
+
+            gnomes.push(new GnomeResponse(gnome,null));
+        }
+
         const gnomePageMetaDto = new GnomePageMetaDto(page,limit,dataCount)
 
-        return new GnomePageDto(data,gnomePageMetaDto);
+        return new GnomePageDto(gnomes,gnomePageMetaDto);
     }
 
     @UseGuards(JwtAuthGuard)

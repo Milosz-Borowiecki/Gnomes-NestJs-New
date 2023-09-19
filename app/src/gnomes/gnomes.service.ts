@@ -6,6 +6,7 @@ import { Gnome } from './entities/gnome.entity';
 import { Repository } from 'typeorm';
 import { User } from 'src/user/entities/user.entity';
 import { Races } from './dtos/races';
+import { existsSync } from 'fs';
 
 @Injectable()
 export class GnomesService {
@@ -93,5 +94,18 @@ export class GnomesService {
         return await this.gnomesRepository.count({
             where: { race: gnomeType }
         });
+    }
+
+    async getGnomeImage(gnomeId:number,userId:number){
+        const extensions = ['jpg','jpeg','png','gif'];
+        const path = `${process.env.UPLOAD_TEMP_DIR}/${userId}/${gnomeId}`;
+
+        for(const extension of extensions){
+            if(existsSync(`${path}.${extension}`) === true){
+                return "Some image"
+            }
+        }
+
+        return undefined;
     }
 }
