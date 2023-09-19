@@ -1,6 +1,6 @@
 import { Controller, DefaultValuePipe, Delete, Get, ParseIntPipe, Patch, Post } from '@nestjs/common';
-import { Body, Param, Query, Request, UseGuards } from '@nestjs/common/decorators';
-import { ApiBody, ApiParam, ApiQuery } from '@nestjs/swagger';
+import { Body, Param, Query, Request, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common/decorators';
+import { ApiBody, ApiConsumes, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { GnomeValidationPipe } from 'src/pipes/gnome.pipe';
 import { NumberValidationPipe } from 'src/pipes/number.pipe';
 import { TypeValidationPipe } from 'src/pipes/type.pipe';
@@ -11,6 +11,8 @@ import { GnomesService } from './gnomes.service';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { GnomePageDto, GnomePageMetaDto } from './dtos/gnome-page.dto';
 import { GnomeResponse } from './dtos/gnome-response.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { multerOptions } from 'src/config/multerOptions';
 
 
 @Controller('gnomes')
@@ -74,15 +76,24 @@ export class GnomesController {
 
     @UseGuards(JwtAuthGuard)
     @Post()
+    @ApiConsumes('multipart/form-data')
     @ApiBody({
         description: 'Create gnome',
-        type: CreateGnomeDto,
-      })
+        type: CreateGnomeDto
+    })
+    @UseInterceptors(FileInterceptor('image',multerOptions))
     async create(
         @Body(new GnomeValidationPipe()) body: CreateGnomeDto,
+        @UploadedFile() file: Express.Multer.File,
         @Request() req
     ){
-        return this.gnomesService.create(body,await this.userFromRequest(req));
+        const userId = await this.userFromRequest(req);
+        const gnome = await this.gnomesService.create(body,userId);
+        if(file){
+            await this.gnomesService.saveGnomeImage(file,gnome.id,userId);
+        }
+    
+        return gnome;
     }
 
     @UseGuards(JwtAuthGuard)

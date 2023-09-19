@@ -6,7 +6,8 @@ import { Gnome } from './entities/gnome.entity';
 import { Repository } from 'typeorm';
 import { User } from 'src/user/entities/user.entity';
 import { Races } from './dtos/races';
-import { existsSync } from 'fs';
+import { existsSync, mkdirSync, writeFileSync } from 'fs';
+import { extname } from 'path';
 
 @Injectable()
 export class GnomesService {
@@ -107,5 +108,18 @@ export class GnomesService {
         }
 
         return undefined;
+    }
+
+    async saveGnomeImage(file: Express.Multer.File,gnomeId: number,userId:number){
+
+        file.originalname = `${gnomeId}${extname(file.originalname)}`;
+
+        const uploadPath = process.env.UPLOAD_TEMP_DIR + "/" + userId;
+        
+        if(!existsSync(uploadPath)){
+            mkdirSync(uploadPath);
+        }
+        
+        writeFileSync(`${uploadPath}/${file.originalname}`,file.buffer);
     }
 }
