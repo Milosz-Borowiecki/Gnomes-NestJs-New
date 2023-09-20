@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { CreateGnomeInterface } from './gnome.interface';
 import { UpdateGnomeDto } from './dtos/update-gnome.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Gnome } from './entities/gnome.entity';
@@ -9,6 +8,9 @@ import { Races } from './dtos/races';
 import { existsSync, mkdirSync, unlinkSync, writeFileSync } from 'fs';
 import { extname } from 'path';
 import { CreateGnomeDto } from './dtos/create-gnome.dto';
+import * as dotenv from 'dotenv';
+
+dotenv.config();
 
 @Injectable()
 export class GnomesService {
