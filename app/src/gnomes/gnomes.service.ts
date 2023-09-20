@@ -106,7 +106,7 @@ export class GnomesService {
 
         for(const extension of extensions){
             if(existsSync(`${path}.${extension}`) === true){
-                return "Some image"
+                return `${process.env.URL_CONTROLLER_GET}?userId=${userId}&fileName=${gnomeId}.${extension}`;
             }
         }
 
