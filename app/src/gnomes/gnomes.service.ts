@@ -1,11 +1,16 @@
 import { Injectable } from '@nestjs/common';
-import { CreateGnomeInterface } from './gnome.interface';
 import { UpdateGnomeDto } from './dtos/update-gnome.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Gnome } from './entities/gnome.entity';
 import { Repository } from 'typeorm';
 import { User } from 'src/user/entities/user.entity';
 import { Races } from './dtos/races';
+import { existsSync, mkdirSync, unlinkSync, writeFileSync } from 'fs';
+import { extname } from 'path';
+import { CreateGnomeDto } from './dtos/create-gnome.dto';
+import * as dotenv from 'dotenv';
+
+dotenv.config();
 
 @Injectable()
 export class GnomesService {
@@ -45,9 +50,9 @@ export class GnomesService {
         });
     }
 
-    async create(body: CreateGnomeInterface,userId: number) : Promise<Gnome>{
+    async create(body: CreateGnomeDto,userId: number) : Promise<Gnome>{
 
-        const gnome = Object.assign(new Gnome(),body);
+        const gnome: Gnome = Object.assign(new Gnome(),body);
 
         const user = await this.usersRepository.findOne({ 
             where: { id: userId }, 
@@ -56,7 +61,7 @@ export class GnomesService {
     
         const newGnome = await this.gnomesRepository.save(gnome)
 
-        user.gnomes.push(gnome)
+        user.gnomes.push(newGnome)
 
         await this.usersRepository.save(user);
 
@@ -65,19 +70,21 @@ export class GnomesService {
 
     async modify(gnomeId: number,body: UpdateGnomeDto) : Promise<Gnome>{
 
-        const gnome = Object.assign(new Gnome(),body);
-
-        const isExist = await this.gnomesRepository.exist({ 
+        const oldGnome = await this.gnomesRepository.findOne({ 
             where: { id: gnomeId } 
         });
 
-        if(!isExist){
+        if(!oldGnome){
             return;
         }
-    
-        gnome.id = gnomeId;
 
-        return this.gnomesRepository.save(gnome);
+        const newGnome = await this.assignDefined(oldGnome,body);
+
+        if(newGnome.race !== Races.Rock && newGnome.strength > 100){
+            return;
+        }
+
+        return await this.gnomesRepository.save(newGnome);
     }
 
     async delete(gnomeId:number) : Promise<void>{
@@ -93,5 +100,55 @@ export class GnomesService {
         return await this.gnomesRepository.count({
             where: { race: gnomeType }
         });
+    }
+
+    async getGnomeImage(gnomeId:number,userId:number){
+        const extensions = ['jpg','jpeg','png','gif'];
+        const path = `${process.env.UPLOAD_TEMP_DIR}/${userId}/${gnomeId}`;
+
+        for(const extension of extensions){
+            if(existsSync(`${path}.${extension}`) === true){
+                return `${process.env.URL_CONTROLLER_GET}?userId=${userId}&fileName=${gnomeId}.${extension}`;
+            }
+        }
+
+        return undefined;
+    }
+
+    async saveGnomeImage(file: Express.Multer.File,gnomeId: number,userId:number){
+
+        file.originalname = `${gnomeId}${extname(file.originalname)}`;
+
+        const uploadPath = process.env.UPLOAD_TEMP_DIR + "/" + userId;
+        
+        if(!existsSync(uploadPath)){
+            mkdirSync(uploadPath);
+        }
+        
+        writeFileSync(`${uploadPath}/${file.originalname}`,file.buffer);
+    }
+
+    async deleteGnomeImage(gnomeId: number,userId:number){
+        const extensions = ['jpg','jpeg','png','gif'];
+        const path = `${process.env.UPLOAD_TEMP_DIR}/${userId}/${gnomeId}`;
+
+        for(const extension of extensions){
+            if(existsSync(`${path}.${extension}`) === true){
+                unlinkSync(`${path}.${extension}`);
+                break;
+            }
+        }
+    }
+
+    async assignDefined(target:Gnome,...sources) {
+        for (const source of sources) {
+            for (const key of Object.keys(source)) {
+                const val = source[key];
+                if (val !== undefined && val !== '') {
+                    target[key] = val;
+                }
+            }
+        }
+        return target;
     }
 }

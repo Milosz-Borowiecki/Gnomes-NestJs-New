@@ -1,6 +1,6 @@
 import { Controller, DefaultValuePipe, Delete, Get, ParseIntPipe, Patch, Post } from '@nestjs/common';
-import { Body, Param, Query, Request, UseGuards } from '@nestjs/common/decorators';
-import { ApiBody, ApiParam, ApiQuery } from '@nestjs/swagger';
+import { Body, Param, Query, Request, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common/decorators';
+import { ApiBody, ApiConsumes, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { GnomeValidationPipe } from 'src/pipes/gnome.pipe';
 import { NumberValidationPipe } from 'src/pipes/number.pipe';
 import { TypeValidationPipe } from 'src/pipes/type.pipe';
@@ -10,6 +10,9 @@ import { UpdateGnomeDto } from './dtos/update-gnome.dto';
 import { GnomesService } from './gnomes.service';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { GnomePageDto, GnomePageMetaDto } from './dtos/gnome-page.dto';
+import { GnomeResponse } from './dtos/gnome-response.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { multerOptions } from 'src/config/multerOptions';
 
 
 @Controller('gnomes')
@@ -19,12 +22,12 @@ export class GnomesController {
 
     
     @Get()
-    @ApiQuery({name: "id",type: Number,required:false})
-    findById(
+    @ApiQuery({name: "id",type: Number,required:true})
+    async findById(
         @Query('id', ParseIntPipe) id: number
     ){
 
-        const gnome = this.findGnome(id);
+        const gnome = await this.findGnome(id);
 
         if(!gnome){
             return {
@@ -32,7 +35,13 @@ export class GnomesController {
             }
         }
 
-        return gnome;
+        const imageUrl = await this.gnomesService.getGnomeImage(gnome.id,gnome.user.id);
+
+        if(imageUrl){
+            return new GnomeResponse(gnome,imageUrl);
+        }
+
+        return new GnomeResponse(gnome,null);
     }
 
     @ApiQuery({name: "page",type: String,required:false})
@@ -48,36 +57,61 @@ export class GnomesController {
 
         const data = await this.gnomesService.findAll((page - 1) * limit,limit,gnomeType);
 
+        const gnomes: GnomeResponse[] = [];
+
+        for(const gnome of data){
+            const imageUrl = await this.gnomesService.getGnomeImage(gnome.id,gnome.user.id);
+
+            if(imageUrl){
+                gnomes.push(new GnomeResponse(gnome,imageUrl));
+            }
+
+            gnomes.push(new GnomeResponse(gnome,null));
+        }
+
         const gnomePageMetaDto = new GnomePageMetaDto(page,limit,dataCount)
 
-        return new GnomePageDto(data,gnomePageMetaDto);
+        return new GnomePageDto(gnomes,gnomePageMetaDto);
     }
 
     @UseGuards(JwtAuthGuard)
     @Post()
+    @ApiConsumes('multipart/form-data')
     @ApiBody({
         description: 'Create gnome',
-        type: CreateGnomeDto,
-      })
+        type: CreateGnomeDto
+    })
+    @UseInterceptors(FileInterceptor('image',multerOptions))
     async create(
         @Body(new GnomeValidationPipe()) body: CreateGnomeDto,
+        @UploadedFile() file: Express.Multer.File,
         @Request() req
     ){
-        return this.gnomesService.create(body,await this.userFromRequest(req));
+        const userId = await this.userFromRequest(req);
+        const gnome = await this.gnomesService.create(body,userId);
+        if(file){
+            await this.gnomesService.saveGnomeImage(file,gnome.id,userId);
+        }
+    
+        return gnome;
     }
 
     @UseGuards(JwtAuthGuard)
     @Patch('/:id')
+    @ApiConsumes('multipart/form-data')
     @ApiBody({
         description: 'Update gnome',
         type: UpdateGnomeDto,
       })
     @ApiParam({name: "id",type: Number,required:true})
+    @UseInterceptors(FileInterceptor('image',multerOptions))
     async modify(
         @Param('id',new NumberValidationPipe,ParseIntPipe) id: number,
         @Body(new GnomeValidationPipe()) body: UpdateGnomeDto,
+        @UploadedFile() file: Express.Multer.File,
         @Request() req
     ){
+        const userId = await this.userFromRequest(req);
         const gnome = await this.findGnome(id);
 
         if(!gnome){
@@ -86,10 +120,14 @@ export class GnomesController {
             }
         }
 
-        if(gnome.user.id != this.userFromRequest(req)){
+        if(gnome.user.id != userId){
             return {
                 message: "You are not the owner of this gnome"
             }
+        }
+
+        if(file){
+            await this.gnomesService.saveGnomeImage(file,gnome.id,userId);
         }
 
         return this.gnomesService.modify(id,body);
@@ -102,6 +140,7 @@ export class GnomesController {
         @Param('id',NumberValidationPipe ,ParseIntPipe) id: number,
         @Request() req
     ){
+        const userId = await this.userFromRequest(req);
         const gnome = await this.findGnome(id);
 
         if(!gnome){
@@ -110,11 +149,13 @@ export class GnomesController {
             }
         }
 
-        if(gnome.user.id != this.userFromRequest(req)){
+        if(gnome.user.id != userId){
             return {
                 message: "You are not the owner of this gnome"
             }
         }
+
+        await this.gnomesService.deleteGnomeImage(gnome.id,userId);
 
         return this.gnomesService.delete(id);
     }

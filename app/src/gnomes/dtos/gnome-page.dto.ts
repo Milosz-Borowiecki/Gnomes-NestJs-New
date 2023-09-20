@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsArray } from "class-validator";
-import { Gnome } from "../entities/gnome.entity";
+import { GnomeResponse } from "./gnome-response.dto";
 
 export class GnomePageMetaDto {
     @ApiProperty()
@@ -31,15 +31,15 @@ export class GnomePageMetaDto {
     }
 }
 
-  export class GnomePageDto {
+export class GnomePageDto {
     @IsArray()
     @ApiProperty({ isArray: true })
-    readonly data: Gnome[];
+    readonly data: GnomeResponse[];
   
     @ApiProperty({ type: () => GnomePageMetaDto })
     readonly meta: GnomePageMetaDto;
   
-    constructor(data: Gnome[], meta: GnomePageMetaDto) {
+    constructor(data: GnomeResponse[], meta: GnomePageMetaDto) {
       this.data = data;
       this.meta = meta;
     }
