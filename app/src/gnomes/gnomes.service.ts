@@ -68,19 +68,21 @@ export class GnomesService {
 
     async modify(gnomeId: number,body: UpdateGnomeDto) : Promise<Gnome>{
 
-        const gnome = Object.assign(new Gnome(),body);
-
-        const isExist = await this.gnomesRepository.exist({ 
+        const oldGnome = await this.gnomesRepository.findOne({ 
             where: { id: gnomeId } 
         });
 
-        if(!isExist){
+        if(!oldGnome){
             return;
         }
-    
-        gnome.id = gnomeId;
 
-        return this.gnomesRepository.save(gnome);
+        const newGnome = await this.assignDefined(oldGnome,body);
+
+        if(newGnome.race !== Races.Rock && newGnome.strength > 100){
+            return;
+        }
+
+        return await this.gnomesRepository.save(newGnome);
     }
 
     async delete(gnomeId:number) : Promise<void>{
@@ -134,5 +136,17 @@ export class GnomesService {
                 break;
             }
         }
+    }
+
+    async assignDefined(target:Gnome,...sources) {
+        for (const source of sources) {
+            for (const key of Object.keys(source)) {
+                const val = source[key];
+                if (val !== undefined && val !== '') {
+                    target[key] = val;
+                }
+            }
+        }
+        return target;
     }
 }

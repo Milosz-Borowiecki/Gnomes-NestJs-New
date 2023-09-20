@@ -98,16 +98,20 @@ export class GnomesController {
 
     @UseGuards(JwtAuthGuard)
     @Patch('/:id')
+    @ApiConsumes('multipart/form-data')
     @ApiBody({
         description: 'Update gnome',
         type: UpdateGnomeDto,
       })
     @ApiParam({name: "id",type: Number,required:true})
+    @UseInterceptors(FileInterceptor('image',multerOptions))
     async modify(
         @Param('id',new NumberValidationPipe,ParseIntPipe) id: number,
         @Body(new GnomeValidationPipe()) body: UpdateGnomeDto,
+        @UploadedFile() file: Express.Multer.File,
         @Request() req
     ){
+        const userId = await this.userFromRequest(req);
         const gnome = await this.findGnome(id);
 
         if(!gnome){
@@ -116,10 +120,14 @@ export class GnomesController {
             }
         }
 
-        if(gnome.user.id != this.userFromRequest(req)){
+        if(gnome.user.id != userId){
             return {
                 message: "You are not the owner of this gnome"
             }
+        }
+
+        if(file){
+            await this.gnomesService.saveGnomeImage(file,gnome.id,userId);
         }
 
         return this.gnomesService.modify(id,body);
