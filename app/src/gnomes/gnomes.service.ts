@@ -6,8 +6,9 @@ import { Gnome } from './entities/gnome.entity';
 import { Repository } from 'typeorm';
 import { User } from 'src/user/entities/user.entity';
 import { Races } from './dtos/races';
-import { existsSync, mkdirSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, unlinkSync, writeFileSync } from 'fs';
 import { extname } from 'path';
+import { CreateGnomeDto } from './dtos/create-gnome.dto';
 
 @Injectable()
 export class GnomesService {
@@ -47,9 +48,9 @@ export class GnomesService {
         });
     }
 
-    async create(body: CreateGnomeInterface,userId: number) : Promise<Gnome>{
+    async create(body: CreateGnomeDto,userId: number) : Promise<Gnome>{
 
-        const gnome = Object.assign(new Gnome(),body);
+        const gnome: Gnome = Object.assign(new Gnome(),body);
 
         const user = await this.usersRepository.findOne({ 
             where: { id: userId }, 
@@ -58,7 +59,7 @@ export class GnomesService {
     
         const newGnome = await this.gnomesRepository.save(gnome)
 
-        user.gnomes.push(gnome)
+        user.gnomes.push(newGnome)
 
         await this.usersRepository.save(user);
 
@@ -121,5 +122,17 @@ export class GnomesService {
         }
         
         writeFileSync(`${uploadPath}/${file.originalname}`,file.buffer);
+    }
+
+    async deleteGnomeImage(gnomeId: number,userId:number){
+        const extensions = ['jpg','jpeg','png','gif'];
+        const path = `${process.env.UPLOAD_TEMP_DIR}/${userId}/${gnomeId}`;
+
+        for(const extension of extensions){
+            if(existsSync(`${path}.${extension}`) === true){
+                unlinkSync(`${path}.${extension}`);
+                break;
+            }
+        }
     }
 }

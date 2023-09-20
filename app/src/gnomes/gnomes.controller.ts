@@ -132,6 +132,7 @@ export class GnomesController {
         @Param('id',NumberValidationPipe ,ParseIntPipe) id: number,
         @Request() req
     ){
+        const userId = await this.userFromRequest(req);
         const gnome = await this.findGnome(id);
 
         if(!gnome){
@@ -140,11 +141,13 @@ export class GnomesController {
             }
         }
 
-        if(gnome.user.id != this.userFromRequest(req)){
+        if(gnome.user.id != userId){
             return {
                 message: "You are not the owner of this gnome"
             }
         }
+
+        await this.gnomesService.deleteGnomeImage(gnome.id,userId);
 
         return this.gnomesService.delete(id);
     }
