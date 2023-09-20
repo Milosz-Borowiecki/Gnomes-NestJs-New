@@ -6,11 +6,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import * as dotenv from 'dotenv';
 import { User } from './user/entities/user.entity';
 import { Gnome } from './gnomes/entities/gnome.entity';
+import { ImagesModule } from './images/images.module';
 
 dotenv.config();
 
 @Module({
-  imports: [GnomesModule, UserModule, AuthModule,
+  imports: [GnomesModule, UserModule, AuthModule,ImagesModule,
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: process.env.DB_HOST,
@@ -20,6 +21,7 @@ dotenv.config();
       database: process.env.DB_DATABASE,
       entities: [User,Gnome],
       synchronize: true,
-    }),]
+    }),
+  ]
 })
 export class AppModule {}
