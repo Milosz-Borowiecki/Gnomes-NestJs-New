@@ -16,7 +16,7 @@ export class ImagesController {
         @Res() res: Response    
     ){
         const file = res.sendFile(fileName,{
-            root: `${process.env.UPLOAD_TEMP_DIR}/${userId}/`
+            root: `$localhost:3000/images/${userId}/`
         });
 
         return file;
