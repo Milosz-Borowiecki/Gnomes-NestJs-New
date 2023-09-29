@@ -1,0 +1,34 @@
+version: "3.9"
+
+services:
+  server_database:
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: some_password_root
+      MYSQL_USER: some_user
+      MYSQL_PASSWORD: some_password_user
+      MYSQL_DATABASE: gnomesdb
+    volumes:
+      - db_volume:/var/lib/mysql
+    networks:
+      - app_network
+
+  app:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    ports:
+      - '3000:3000'
+    volumes:
+      - db_uploads:/var/www/app/uploads/temp
+    networks:
+      - app_network
+    depends_on:
+      - server_database
+
+networks:
+  app_network:
+
+volumes:
+  db_volume:
+  db_uploads:
